@@ -4,15 +4,20 @@
 
     <!--    左边的部分-->
     <div class="left-container">
-      <el-tag
-          key="pic1"
-          type="success"
-          effect="dark">
-        图片一
-      </el-tag>
+      <h3>您想比较的图——您可以选择手动上传</h3>
+      <div>
+        <el-upload list-type="picture-card" auto-upload="auto-upload">
+          <i class="el-icon-plus"></i>
+        </el-upload>
+        <br>
+        <div>
+          <h3>或者点此
+            <el-button type="primary"><i class="el-icon-camera"></i>拍照</el-button>
+          </h3>
 
-
-
+        </div>
+        <img :src="imgUrl" alt="图" v-if="imgUrl!==''">
+      </div>
 
     </div>
 
@@ -48,6 +53,7 @@ export default {
   },
   data() {
     return {
+      imgUrl: "../assets/upload1/alm9x-kj0rm.jpg"
     }
   },
 

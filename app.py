@@ -15,6 +15,21 @@ def hello_world():  # put application's code here
     return 'Hello World!'
 
 
+# 文件上传
+@app.route('/upload', methods=['POST'])
+def upload():
+    if request.method == 'POST':
+        f = request.files['file']
+        f.save('E:\\Image_matching\\image_matching_front\\src\\assets\\upload1\\' + f.filename)
+        print('ok')
+        url = "http://127.0.0.1:5000/" + f.filename
+        res = {
+            "url": url,
+            "code": "success"
+        }
+        return jsonify(res)
+
+
 @app.route('/image_matching')
 def matching():
     image1_path = 'assets/e.jpg'
