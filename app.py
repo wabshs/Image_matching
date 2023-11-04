@@ -1,3 +1,5 @@
+import base64
+
 from flask import Flask, render_template, request, redirect, url_for, make_response, jsonify
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
@@ -17,19 +19,21 @@ def hello_world():  # put application's code here
 
 # 文件上传
 @app.route('/upload', methods=['POST'])
-def upload():
-    if request.method == 'POST':
-        f = request.files['file']
-        f.save('E:\\Image_matching\\image_matching_front\\src\\assets\\upload1\\' + f.filename)
-        print('ok')
-        url = "http://127.0.0.1:5000/" + f.filename
-        res = {
-            "url": url,
-            "code": "success"
-        }
-        return jsonify(res)
+def upload_file():
+    try:
+        file = request.files['file']
+        if file:
+            filename = os.path.join(app.config['UPLOAD_FOLDER'], 'photo_left.jpg')
+            file.save(filename)
+            return jsonify({'message': 'Upload successful', 'file_path': filename}), 200
+        else:
+            return jsonify({'message': 'No file uploaded'}), 400
+    except Exception as e:
+        print(e)
+        return jsonify({'message': 'Error uploading file'}), 500
 
 
+# 图像对比
 @app.route('/image_matching')
 def matching():
     image1_path = 'assets/e.jpg'
@@ -48,6 +52,32 @@ def matching():
 
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'JPG', 'PNG'}
+UPLOAD_FOLDER = './static'  # 存储上传图片的文件夹
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+
+# 保存图片
+@app.route('/save-photo', methods=['POST'])
+def save_photo():
+    try:
+        # 获取前端发送的照片数据
+        data_url = request.json.get('photoDataUrl')
+        # 解码base64数据
+        _, img_data = data_url.split(',')
+        img_bytes = base64.b64decode(img_data)
+
+        # 保存照片到指定文件夹
+        file_path = './static/photo.png'
+        with open(file_path, 'wb') as f:
+            f.write(img_bytes)
+
+        return jsonify({'message': 'Photo saved successfully'}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'message': 'Error saving photo'}), 500
 
 
 def allowed_file(filename):

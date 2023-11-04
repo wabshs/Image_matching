@@ -7,7 +7,11 @@
     <div class="left-container">
       <h3>您想比较的图——您可以选择手动上传</h3>
       <div>
-        <el-upload list-type="picture-card" auto-upload="auto-upload">
+        <el-upload list-type="picture-card" auto-upload="auto-upload" action="http://127.0.0.1:5000/upload"
+                   :on-success="handleSuccess"
+                   :on-error="handleError"
+                   limit="1"
+                   :file-list="fileList">
           <i class="el-icon-plus"></i>
         </el-upload>
         <br>
@@ -47,6 +51,8 @@
         </div>
 
         <span slot="footer" class="dialog-footer">
+          <el-button type="success" v-if="photo" @click="savePhoto"><i
+              class="el-icon-folder-checked"></i>保 存</el-button>
           <el-button @click="beforeDestroy">取 消</el-button>
           <el-button type="warning" @click="takePhoto"><i class="el-icon-camera"></i>拍 摄</el-button>
         </span>
@@ -92,7 +98,8 @@ export default {
       rightImgExist: false,
       dialogVisible: false,
       photo: null,
-      videoStream: null
+      videoStream: null,
+      fileList: [],
     }
   },
 
@@ -110,6 +117,18 @@ export default {
         console.error('Error accessing the camera:', error);
       }
     },
+    // 回调函数
+    handleSuccess(response) {
+      // 上传成功处理逻辑
+      this.$message.success('图片上传成功');
+      console.log(response);
+    },
+    handleError(err) {
+      // 上传失败处理逻辑
+      this.$message.error('图片上传失败，请重试');
+      console.error(err);
+    },
+
     // 打开拍照窗口
     openCameraWindow() {
       this.dialogVisible = true
@@ -141,6 +160,28 @@ export default {
         this.$refs.video.srcObject = null;
 
       }
+    },
+    savePhoto() {
+      // 向后台发送照片数据
+      fetch('http://127.0.0.1:5000/save-photo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({photoDataUrl: this.photo}),
+      }).then(response => response.json()).then(data => {
+        console.log(data.message);
+        // 成功提示
+        // 关闭dialog
+        this.dialogVisible = false
+        this.$message.success('照片上传成功!');
+        const photoDataUrl = this.photo; // 替换成实际的照片数据URL
+        this.fileList.push({url: photoDataUrl});
+      }).catch(error => {
+        console.error(error);
+        // 失败提示
+        this.$message.error('照片上传失败!')
+      });
     },
   }
 
