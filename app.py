@@ -70,7 +70,28 @@ def save_photo():
         img_bytes = base64.b64decode(img_data)
 
         # 保存照片到指定文件夹
-        file_path = './static/photo.png'
+        file_path = './static/photo_left.png'
+        with open(file_path, 'wb') as f:
+            f.write(img_bytes)
+
+        return jsonify({'message': 'Photo saved successfully'}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({'message': 'Error saving photo'}), 500
+
+
+# 保存右边图片
+@app.route('/save-photo-right', methods=['POST'])
+def save_photo_right():
+    try:
+        # 获取前端发送的照片数据
+        data_url = request.json.get('photoDataUrl')
+        # 解码base64数据
+        _, img_data = data_url.split(',')
+        img_bytes = base64.b64decode(img_data)
+
+        # 保存照片到指定文件夹
+        file_path = './static/photo_right.png'
         with open(file_path, 'wb') as f:
             f.write(img_bytes)
 

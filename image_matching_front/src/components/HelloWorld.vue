@@ -30,7 +30,7 @@
       <!--    弹出框-->
       <el-dialog
           title="请拍摄"
-          :visible.sync="dialogVisible"
+          :visible.sync="dialogVisible_left"
           width="50%"
       >
         <!--        调用摄像头的区域-->
@@ -70,12 +70,45 @@
         <br>
         <div>
           <h3>或者点此
-            <el-button type="primary"><i class="el-icon-camera"></i>拍 照</el-button>
+            <el-button type="primary" @click="openCameraWindow_right"><i class="el-icon-camera"></i>拍 照</el-button>
           </h3>
 
         </div>
         <img :src="imgUrl" alt="图" v-if="leftImgExist===true" class="leftImg">
       </div>
+
+      <!--    弹出框-->
+      <el-dialog
+          title="请拍摄"
+          :visible.sync="dialogVisible_right"
+          width="50%"
+      >
+        <!--        调用摄像头的区域-->
+        <div class="camera">
+          <!--          视频窗口-->
+          <div class="video-container">
+            <h1>实时摄像头画面</h1>
+            <video ref="video_right" width="100%" height="400" autoplay></video>
+          </div>
+
+          <!--          照片显示区域-->
+          <div class="photo-container">
+            <h1>拍照预览图</h1>
+            <br>
+            <img :src="photo_right" v-if="photo_right" alt="拍摄的照片" height="400"/>
+          </div>
+
+        </div>
+
+        <span slot="footer" class="dialog-footer">
+          <el-button type="success" v-if="photo_right" @click="savePhoto_right"><i
+              class="el-icon-folder-checked"></i>保 存</el-button>
+          <el-button @click="beforeDestroy">取 消</el-button>
+          <el-button type="warning" @click="takePhoto_right"><i class="el-icon-camera"></i>拍 摄</el-button>
+        </span>
+      </el-dialog>
+
+
     </div>
 
   </div>
@@ -96,10 +129,12 @@ export default {
       imgUrl: "",
       leftImgExist: false,
       rightImgExist: false,
-      dialogVisible: false,
+      dialogVisible_left: false,
       photo: null,
+      photo_right: null,
       videoStream: null,
       fileList: [],
+      dialogVisible_right: false,
     }
   },
 
@@ -112,6 +147,16 @@ export default {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({video: true});
         const videoElement = this.$refs.video;
+        videoElement.srcObject = stream;
+      } catch (error) {
+        console.error('Error accessing the camera:', error);
+      }
+    },
+    // 开启摄像头
+    async startCamera_right() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({video: true});
+        const videoElement = this.$refs.video_right;
         videoElement.srcObject = stream;
       } catch (error) {
         console.error('Error accessing the camera:', error);
@@ -131,9 +176,16 @@ export default {
 
     // 打开拍照窗口
     openCameraWindow() {
-      this.dialogVisible = true
+      this.dialogVisible_left = true
       this.startCamera()
     },
+
+    // 右边的窗口
+    openCameraWindow_right() {
+      this.dialogVisible_right = true
+      this.startCamera_right()
+    },
+
     // 拍摄照片
     takePhoto() {
       const videoElement = this.$refs.video;
@@ -145,9 +197,20 @@ export default {
       this.photo = canvas.toDataURL('image/png');
     },
 
+    // 拍摄照片
+    takePhoto_right() {
+      const videoElement = this.$refs.video_right;
+      const canvas = document.createElement('canvas');
+      canvas.width = videoElement.videoWidth;
+      canvas.height = videoElement.videoHeight;
+      const context = canvas.getContext('2d');
+      context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+      this.photo_right = canvas.toDataURL('image/png');
+    },
+
     //关闭窗口
     async beforeDestroy() {
-      this.dialogVisible = false //关闭窗口
+      this.dialogVisible_left = false //关闭窗口
       await this.releaseCamera()
       window.location.reload()
     },
@@ -161,6 +224,7 @@ export default {
 
       }
     },
+    // 保存照片
     savePhoto() {
       // 向后台发送照片数据
       fetch('http://127.0.0.1:5000/save-photo', {
@@ -173,9 +237,32 @@ export default {
         console.log(data.message);
         // 成功提示
         // 关闭dialog
-        this.dialogVisible = false
+        this.dialogVisible_left = false
         this.$message.success('照片上传成功!');
         const photoDataUrl = this.photo; // 替换成实际的照片数据URL
+        this.fileList.push({url: photoDataUrl});
+      }).catch(error => {
+        console.error(error);
+        // 失败提示
+        this.$message.error('照片上传失败!')
+      });
+    },
+    //   保存右边照片
+    savePhoto_right() {
+      // 向后台发送照片数据
+      fetch('http://127.0.0.1:5000/save-photo-right', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({photoDataUrl: this.photo_right}),
+      }).then(response => response.json()).then(data => {
+        console.log(data.message);
+        // 成功提示
+        // 关闭dialog
+        this.dialogVisible_right = false
+        this.$message.success('照片上传成功!');
+        const photoDataUrl = this.photo_right; // 替换成实际的照片数据URL
         this.fileList.push({url: photoDataUrl});
       }).catch(error => {
         console.error(error);
@@ -216,13 +303,18 @@ export default {
   align-items: center;
 }
 
-.video-container, .photo-container {
+.video-container, .photo-container, .photo-container_right {
   width: 48%; /* 设置为48%以留出一定的间隔 */
   height: 400px;
   text-align: center;
 }
 
 .photo-container img {
+  max-width: 100%; /* 让图片不超过父容器的宽度 */
+  height: auto; /* 根据宽度自动调整高度，保持比例 */
+}
+
+.photo-container_right img {
   max-width: 100%; /* 让图片不超过父容器的宽度 */
   height: auto; /* 根据宽度自动调整高度，保持比例 */
 }
