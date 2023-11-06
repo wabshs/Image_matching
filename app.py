@@ -33,11 +33,27 @@ def upload_file():
         return jsonify({'message': 'Error uploading file'}), 500
 
 
+# 文件上传右边
+@app.route('/upload-right', methods=['POST'])
+def upload_file_right():
+    try:
+        file = request.files['file']
+        if file:
+            filename = os.path.join(app.config['UPLOAD_FOLDER'], 'photo_right.jpg')
+            file.save(filename)
+            return jsonify({'message': 'Upload successful', 'file_path': filename}), 200
+        else:
+            return jsonify({'message': 'No file uploaded'}), 400
+    except Exception as e:
+        print(e)
+        return jsonify({'message': 'Error uploading file'}), 500
+
+
 # 图像对比
-@app.route('/image_matching')
+@app.route('/image_matching', methods=['GET'])
 def matching():
-    image1_path = 'assets/e.jpg'
-    image2_path = 'assets/e.jpg'
+    image1_path = 'static/photo_left.jpg'
+    image2_path = 'static/photo_right.jpg'
     # 读取两张图片
     image1 = cv2.imread(image1_path, cv2.IMREAD_GRAYSCALE)
     image2 = cv2.imread(image2_path, cv2.IMREAD_GRAYSCALE)
@@ -48,7 +64,7 @@ def matching():
     # 计算结构相似性指数
     similarity_score = ssim(image1, image2)
     print(similarity_score)
-    return '请返回控制台查看相似度'
+    return jsonify({'Similarity': similarity_score, 'message': 'success'}), 200
 
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'JPG', 'PNG'}
@@ -70,7 +86,7 @@ def save_photo():
         img_bytes = base64.b64decode(img_data)
 
         # 保存照片到指定文件夹
-        file_path = './static/photo_left.png'
+        file_path = './static/photo_left.jpg'
         with open(file_path, 'wb') as f:
             f.write(img_bytes)
 
@@ -91,7 +107,7 @@ def save_photo_right():
         img_bytes = base64.b64decode(img_data)
 
         # 保存照片到指定文件夹
-        file_path = './static/photo_right.png'
+        file_path = './static/photo_right.jpg'
         with open(file_path, 'wb') as f:
             f.write(img_bytes)
 

@@ -1,6 +1,7 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/hbut.jpg" style="height: 100px">
+<!--    <img alt="Vue logo" src="./assets/hbut.jpg" style="height: 100px">-->
+    <h1>欢迎使用图像对比OvO</h1>
     <HelloWorld msg="Welcome to Your Vue.js App"/>
   </div>
 </template>

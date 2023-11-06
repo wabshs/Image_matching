@@ -64,14 +64,24 @@
     <div class="right-container">
       <h3>原图——您可以选择手动上传</h3>
       <div>
-        <el-upload list-type="picture-card" auto-upload="auto-upload">
+        <el-upload list-type="picture-card" auto-upload="auto-upload"
+                   action="http://127.0.0.1:5000/upload-right"
+                   :file-list="fileListRight"
+                   limit="1">
           <i class="el-icon-plus"></i>
         </el-upload>
         <br>
         <div>
           <h3>或者点此
             <el-button type="primary" @click="openCameraWindow_right"><i class="el-icon-camera"></i>拍 照</el-button>
+            <el-button type="success" @click="image_matching"><i
+                class="el-icon-magic-stick"></i>点 击
+              对 比
+            </el-button>
           </h3>
+
+          <h1>这两张图片的相似度为:{{ Similarity }} %</h1>
+
 
         </div>
         <img :src="imgUrl" alt="图" v-if="leftImgExist===true" class="leftImg">
@@ -117,6 +127,7 @@
 <script>
 import 'sakana-widget/lib/index.css';
 import SakanaWidget from 'sakana-widget';
+import axios from "axios";
 
 
 export default {
@@ -135,6 +146,8 @@ export default {
       videoStream: null,
       fileList: [],
       dialogVisible_right: false,
+      fileListRight: [],
+      Similarity: 0
     }
   },
 
@@ -238,9 +251,15 @@ export default {
         // 成功提示
         // 关闭dialog
         this.dialogVisible_left = false
-        this.$message.success('照片上传成功!');
+
         const photoDataUrl = this.photo; // 替换成实际的照片数据URL
-        this.fileList.push({url: photoDataUrl});
+        if (this.fileList.length === 0) {
+          this.fileList.push({url: photoDataUrl});
+          this.$message.success('照片上传成功!');
+        } else {
+          this.$message.error('只能上传一张')
+        }
+
       }).catch(error => {
         console.error(error);
         // 失败提示
@@ -261,15 +280,32 @@ export default {
         // 成功提示
         // 关闭dialog
         this.dialogVisible_right = false
-        this.$message.success('照片上传成功!');
+
         const photoDataUrl = this.photo_right; // 替换成实际的照片数据URL
-        this.fileList.push({url: photoDataUrl});
+        if (this.fileListRight.length === 0) {
+          this.fileListRight.push({url: photoDataUrl});
+          this.$message.success('照片上传成功!');
+        } else {
+          this.$message.error('只能上传一张')
+        }
+
       }).catch(error => {
         console.error(error);
         // 失败提示
         this.$message.error('照片上传失败!')
       });
     },
+    image_matching() {
+      axios.get('http://127.0.0.1:5000/image_matching')
+          .then(res => {
+            this.Similarity = Math.floor(res.data.Similarity*100)
+            console.log(res.data)
+            console.log(this.Similarity)
+          })
+          .catch(error => {
+            console.error(error)
+          })
+    }
   }
 
 }
