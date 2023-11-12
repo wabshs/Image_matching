@@ -10,5 +10,17 @@
 
 ## Powered<img src="assets/e.jpg" width=35% align=right hspace="5" vspace="5"/>
 
-# Flask
+# Flask && Vue
 (~~python真好用~~)
+
+# 使用方法
+## 后端
+> 安装flask框架和各种库
+1. `pip install flask_cors`
+2. `pip install opencv-python`
+
+## 前端
+> 所需环境——nodeJS（版本建议16 过高可能会出问题）
+1. `cd .\image_matching_front\`
+2. `npm install`
+3. `npm run serve`
