@@ -320,7 +320,7 @@ export default {
       } else if (this.algorithm === 'MSE') {
         axios.get('http://127.0.0.1:5000/image_matching_2')
             .then(res => {
-              this.Similarity = Math.floor(res.data.Similarity * 100)
+              this.Similarity = Math.floor(res.data.Similarity * 10000)
               console.log(res.data)
               console.log(this.Similarity)
             })
