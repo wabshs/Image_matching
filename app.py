@@ -1,5 +1,6 @@
 import base64
 
+import numpy as np
 from flask import Flask, render_template, request, redirect, url_for, make_response, jsonify
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
@@ -63,6 +64,28 @@ def matching():
 
     # 计算结构相似性指数
     similarity_score = ssim(image1, image2)
+    print(similarity_score)
+    return jsonify({'Similarity': similarity_score, 'message': 'success'}), 200
+
+
+@app.route('/image_matching_2', methods=['GET'])
+def matching_2():
+    image1_path = 'static/photo_left.jpg'
+    image2_path = 'static/photo_right.jpg'
+
+    # 读取两张图片
+    image1 = cv2.imread(image1_path)
+    image2 = cv2.imread(image2_path)
+
+    # 调整图片大小，确保两张图片具有相同的尺寸
+    image1 = cv2.resize(image1, (image2.shape[1], image2.shape[0]))
+
+    # 计算均方误差
+    mse = np.sum((image1 - image2) ** 2) / float(image1.shape[0] * image1.shape[1])
+
+    # 均方误差越小，表示图像越相似
+    similarity_score = 1 / (1 + mse)
+
     print(similarity_score)
     return jsonify({'Similarity': similarity_score, 'message': 'success'}), 200
 

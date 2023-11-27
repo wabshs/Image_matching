@@ -25,7 +25,7 @@
       </div>
 
       <!--      锦木千束-->
-      <div class="sakana"></div>
+      <!--      <div class="sakana"></div>-->
 
       <!--    弹出框-->
       <el-dialog
@@ -78,6 +78,16 @@
                 class="el-icon-magic-stick"></i>点 击
               对 比
             </el-button>
+            &nbsp;
+            <el-tag type="success">SSIM</el-tag>
+            <el-switch
+                v-model="algorithm"
+                inactive-color="#13ce66"
+                active-value="MSE"
+                inactive-value="SSIM"
+                style="margin-left: 5px">
+            </el-switch>
+            <el-tag style="margin-left: 5px">MSE</el-tag>
           </h3>
 
           <h1>这两张图片的相似度为:{{ Similarity }} %</h1>
@@ -147,7 +157,8 @@ export default {
       fileList: [],
       dialogVisible_right: false,
       fileListRight: [],
-      Similarity: 0
+      Similarity: 0,
+      algorithm: 'SSIM'
     }
   },
 
@@ -296,15 +307,27 @@ export default {
       });
     },
     image_matching() {
-      axios.get('http://127.0.0.1:5000/image_matching')
-          .then(res => {
-            this.Similarity = Math.floor(res.data.Similarity*100)
-            console.log(res.data)
-            console.log(this.Similarity)
-          })
-          .catch(error => {
-            console.error(error)
-          })
+      if (this.algorithm === 'SSIM') {
+        axios.get('http://127.0.0.1:5000/image_matching')
+            .then(res => {
+              this.Similarity = Math.floor(res.data.Similarity * 100)
+              console.log(res.data)
+              console.log(this.Similarity)
+            })
+            .catch(error => {
+              console.error(error)
+            })
+      } else if (this.algorithm === 'MSE') {
+        axios.get('http://127.0.0.1:5000/image_matching_2')
+            .then(res => {
+              this.Similarity = Math.floor(res.data.Similarity * 100)
+              console.log(res.data)
+              console.log(this.Similarity)
+            })
+            .catch(error => {
+              console.error(error)
+            })
+      }
     }
   }
 
